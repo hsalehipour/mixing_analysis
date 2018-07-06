@@ -38,30 +38,30 @@ def ddf(atts, var_name, ddf_op):
                   "pdf": atts.PDF}
     atts.statisticalOperator = ddf_op_map[ddf_op]
     visit.ConstructDDF(atts)
-    ndims = len(atts.numSamples)
-    ddf_oname = "%s_%s_%dd" % (var_name, ddf_op, ndims)
-    if len(atts.numSamples) == 1:
-        src_fname = "%s.ultra" % atts.ddfName
-        des_fname = "%s.ult" % (atts.ddfName)
-        common.sexe("mv %s %s" % (src_fname, des_fname))
-        lines = open(des_fname).readlines()
-        f = open(des_fname, "w")
-        f.write("# %s\n" % (ddf_oname))
-        for l in lines[1:]:
-            f.write(l)
-        f.close()
-    else:
-        src_fname = "%s.vtk" % atts.ddfName
-        orig_vtk_var = "SCALARS %s float" % var_name
-        ddf_vtk_var = "SCALARS %s float" % ddf_oname
-        des_fname = "%s%s_%04d.vtk" % (Params.output.file_base, atts.ddfName, ts())
-        common.sexe("mv %s %s" % (src_fname, des_fname))
-        data = open(des_fname).read()
-        f = open(des_fname, "w")
-        data = data.replace(orig_vtk_var, ddf_vtk_var)
-        f.write(data)
-    print "[ddf output: %s]" % des_fname
-    return des_fname
+    # ndims = len(atts.numSamples)
+    # ddf_oname = "%s_%s_%dd" % (var_name, ddf_op, ndims)
+    # if len(atts.numSamples) == 1:
+    #     src_fname = "%s.ultra" % atts.ddfName
+    #     des_fname = "%s.ult" % (atts.ddfName)
+    #     common.sexe("mv %s %s" % (src_fname, des_fname))
+    #     lines = open(des_fname).readlines()
+    #     f = open(des_fname, "w")
+    #     f.write("# %s\n" % (ddf_oname))
+    #     for l in lines[1:]:
+    #         f.write(l)
+    #     f.close()
+    # else:
+    #     src_fname = "%s.vtk" % atts.ddfName
+    #     orig_vtk_var = "SCALARS %s float" % var_name
+    #     ddf_vtk_var = "SCALARS %s float" % ddf_oname
+    #     des_fname = "%s%s_%04d.vtk" % (Params.output.file_base, atts.ddfName, ts())
+    #     common.sexe("mv %s %s" % (src_fname, des_fname))
+    #     data = open(des_fname).read()
+    #     f = open(des_fname, "w")
+    #     data = data.replace(orig_vtk_var, ddf_vtk_var)
+    #     f.write(data)
+    # print "[ddf output: %s]" % des_fname
+    # return des_fname
 
 
 def active_db():

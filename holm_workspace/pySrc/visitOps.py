@@ -1,17 +1,21 @@
-import visit
+from visit import *
 from visit_utils import exprs, query, common
+
+
+visit_path = "/usr/local/visit/bin"
+# visit_python_package = "/usr/local/visit/current/linux-x86_64/lib/site-packages"
+
+# helper function to lunch visit
+def launch_visit(visit_path):
+    return visit.Launch(vdir=visit_path)
+
+
 
 class VisitSetupBase(object):
 
-    visit_path = "/usr/local/visit/bin"
-    # visit_python_package = "/usr/local/visit/current/linux-x86_64/lib/site-packages"
-
     def __init__(self):
-        self.mname = self.mesh_name()
-        self.launch_visit(self.visit_path)
-
-    def launch_visit(visit_path):
-        return visit.Launch(vdir=visit_path)
+        self.mesh_name = self.get_mesh_name()
+        self.setup_exprs()
 
     def active_db(self):
         """
@@ -31,7 +35,7 @@ class VisitSetupBase(object):
         """
         return query("SpatialExtents")
 
-    def mesh_name(self):
+    def get_mesh_name(self):
         """
         Fetches the first mesh name in the active database.
         """
@@ -41,23 +45,25 @@ class VisitSetupBase(object):
         """
         Sets up spatial expressions to use with DDF.
         """
-        mname = self.mesh_name()
-        exprs.define("mesh_x_nodal", "coord(%s)[0]" % mname)
-        exprs.define("mesh_y_nodal", "coord(%s)[1]" % mname)
-        exprs.define("mesh_z_nodal", "coord(%s)[2]" % mname)
-        exprs.define("mesh_x_zonal", "recenter(coord(%s)[0])" % mname)
-        exprs.define("mesh_y_zonal", "recenter(coord(%s)[1])" % mname)
-        exprs.define("mesh_z_zonal", "recenter(coord(%s)[2])" % mname)
+        mesh_name = self.mesh_name
+        exprs.define("mesh_x_nodal", "coord(%s)[0]" % mesh_name)
+        exprs.define("mesh_y_nodal", "coord(%s)[1]" % mesh_name)
+        exprs.define("mesh_z_nodal", "coord(%s)[2]" % mesh_name)
+        exprs.define("mesh_x_zonal", "recenter(coord(%s)[0])" % mesh_name)
+        exprs.define("mesh_y_zonal", "recenter(coord(%s)[1])" % mesh_name)
+        exprs.define("mesh_z_zonal", "recenter(coord(%s)[2])" % mesh_name)
 
-    def plotPseudocolor(self, var_name):
-        visit.AddPlot("Pseudocolor", var_name)
+    def plotPseudocolor(self):
+        visit.AddPlot("Pseudocolor", self.fld_name)
         visit.DrawPlots()
 
 
 class ReductionOps(VisitSetupBase):
 
-    def __init__(self,):
+    def __init__(self, op, fld_name):
         super(ReductionOps, self).__init__()
+        self.ddf_op = op
+        self.fld_name = fld_name
         self.atts = visit.ConstructDDFAttributes()
         self.ddf_op_map = { "avg"   : self.atts.Average,
                             "min"   : self.atts.Minimum,
@@ -68,9 +74,14 @@ class ReductionOps(VisitSetupBase):
                             "count" : self.atts.Count,
                             "rms"   : self.atts.RMS,
                             "pdf"   : self.atts.PDF}
+        self.atts.statisticalOperator = self.ddf_op_map[op]
+        self.atts.codomainName = fld_name
 
-    def ddf(self, operation = "avg"):
-        self.atts.statisticalOperator = self.ddf_op_map[operation]
+
+    def __set_attributes__(self):
+        return
+
+    def ddf(self):
         visit.ConstructDDF(self.atts)
         return
 
@@ -101,22 +112,57 @@ class ReductionOps(VisitSetupBase):
         return des_fname
 
 
-    def calc_ubar(self, var_name, num_samples, time_slider=None):
 
-        if time_slider is not None:
-            ddf_name = "%s_avg_xy_%04d" % (var_name, time_slider)
-        else:
-            ddf_name = "%s_avg_xy" % (var_name)
-        sext = self.mesh_spatial_extents()
-        self.atts.ddfName = ddf_name
-        self.atts.codomainName = var_name
-        self.atts.varnames = ("mesh_z_nodal",)
-        self.atts.ranges = (sext[4], sext[5])
-        self.atts.numSamples = (num_samples,)
-        self.ddf(operation="avg")
 
-        mname = self.mesh_name()
-        avg_ename = "%s_avg" % var_name
-        exprs.define(avg_ename, "apply_ddf(%s,%s)" % (mname, ddf_name))
+def average_xy(fld_name, num_samples, ts = None):
+    """
+    averages a given field in the xy plane
+    """
 
-        return
+    #  ts : time slider
+    if ts is not None:
+        ddf_name = "%s_avg_xy_%04d" % (fld_name, ts)
+    else:
+        ddf_name = "%s_avg_xy" % (fld_name)
+
+    # create the reduction object with the right operator
+    fld_bar = ReductionOps(op='avg', fld_name=fld_name)
+
+    # plot Pseudo-color
+    fld_bar.plotPseudocolor()
+
+    # find the spatial extents of the comp. domain
+    sext =fld_bar.mesh_spatial_extents()
+
+    # set the remainder of the attributes
+    # average in xy by binning based on z
+    fld_bar.atts.varnames = ("mesh_z_nodal",)
+    fld_bar.atts.ranges = (sext[4], sext[5])
+    fld_bar.atts.ddfName = ddf_name
+    fld_bar.atts.numSamples = (num_samples,)
+
+    # construct the ddf once all attributes are set
+    fld_bar.ddf()
+
+    mesh_name = fld_bar.mesh_name
+    avg_ename = "%s_avg" % fld_name
+    exprs.define(avg_ename, "apply_ddf(%s,%s)" % (mesh_name, ddf_name))
+
+    return avg_ename
+
+
+def calc_ubar(fld_name, num_samples, time_slider=None):
+    return average_xy(fld_name, num_samples, ts=time_slider)
+
+
+def main():
+    dbname = "~/Downloads/tutorial_data/varying.visit"
+    launch_visit(visit_path)
+    OpenDatabase(dbname)
+    ubar = calc_ubar('temp', 500)
+    ChangeActivePlotsVar(ubar)
+    pass
+
+# if __visit_script_file__ == __visit_source_file__:
+if __name__ == "__main__":
+    main()
