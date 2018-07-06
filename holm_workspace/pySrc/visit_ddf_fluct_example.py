@@ -15,10 +15,10 @@
 ##################################
 
 visit_path           = "/usr/local/visit/bin"
-visit_python_package = "/usr/local/visit/current/linux-x86_64/lib/site-packages"
+# visit_python_package = "/usr/local/visit/current/linux-x86_64/lib/site-packages"
 
-import sys
-sys.path.append(visit_python_package)
+# import sys
+# sys.path.append(visit_python_package)
 
 from visit import *
 from visit_utils import *

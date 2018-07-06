@@ -2,23 +2,29 @@
 *.dat
 
 KH_workspace/data/
-
+KH_workspace/src/fig/
 KH_workspace/data_others/
 
 holm_workspace/SID/
-
 holm_workspace/data/
+holm_workspace/src/fig/
+
+*.pdf
+
+*.svg
 
 *.eps
+
+*.png
 
 *.mat
 
 *.zip
-
-KH_workspace/src/fig/
 
 *.okc
 
 *.tar
 
 \.idea/
+
+holm_workspace/pySrc/visitlog\.py
