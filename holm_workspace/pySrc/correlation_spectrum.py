@@ -3,17 +3,7 @@
 # The purpose of this code is to drive visit in order to analyze the HWI data for the SOC paper
 # Date: 18 Dec 2017
 #================================
-
-visit_path           = "/usr/local/visit/bin"
-visit_python_package = "/usr/local/visit/current/linux-x86_64/lib/site-packages"
-
-import sys
-sys.path.append(visit_python_package)
-import numpy as np
-from visit import *
 from visitOps import *
-
-Launch(vdir=visit_path)
 
 
 #================================
@@ -26,48 +16,58 @@ density_layer = True
 
 # Initial setup
 path_remote = 'niagara.scinet.utoronto.ca:/gpfs/fs1/home/p/peltier/hsalehip/scratch/'
-fname = path_remote + simname + '/r1/holm.nek5000'
-path_local = '/home/hesam/REPOs/mixing_analysis/holm_workspace/data/'
-
-Mesh = "mesh"
+path_local  = '/home/hesam/REPOs/mixing_analysis/holm_workspace/data/'
+dbname = path_remote + simname + '/r1/holm.nek5000'
 
 # Read the position of upper and lower flanks of shear and density layers
-siminfo     = np.loadtxt(path_local+simname+"/siminfo.dat")
+# siminfo     = np.loadtxt(path_local+simname+"/siminfo.dat")
 data_flanks = np.loadtxt(path_local+simname+"/flanks.dat")
 Irho = data_flanks[:,1]
 Iu   = data_flanks[:,2]
-xmin, xmax = siminfo[4:6]
 if shear_layer:
     zl = Iu/2.
 elif density_layer:
     zl = Irho/2.
 
-p0 = (xmin,  zl[0], 0.0)
-p1 = (xmax,  zl[0], 0.0)
+
+
+# Read database
+rho = 'temperature'
+zvel= 'z_velocity'
+launch_visit(visit_path)
+OpenDatabase(dbname)
+
+
+# Apply initial driver to get the points for the linout operation
+driver = VisitSetupBase()
+driver.plotSlice(rho)
+xmin, xmax, zmin, zmax = driver.mesh_spatial_extents()
+
+# caculate rho' = rho - <rho>_{xy}
+rho_bar   = calc_ubar(rho, 500)
+rho_fluct = calc_ufluct(rho, rho_bar)
+ChangeActivePlotsVar(rho_bar)
+
+# calculate w' = w - <w>_{xy}
+zvel_bar   = calc_ubar(zvel, 500)
+zvel_fluct = calc_ufluct(zvel, zvel_bar)
+
+
+
+p0 = (xmin, zl[0], 0.0)
+p1 = (xmax, zl[0], 0.0)
 p2 = (xmin, -zl[0], 0.0)
 p3 = (xmax, -zl[0], 0.0)
 p4 = (xmin, 0.0, 0.0)
 p5 = (xmax, 0.0, 0.0)
 
-# Define the scalar variables
-DefineScalarExpression("xc", "coord(%s)[0]" % Mesh)
-DefineScalarExpression("zc", "coord(%s)[2]" % Mesh)
-DefineScalarExpression("vort3d_mag_sqr", "velocity_mag^2")
-DefineScalarExpression("vort2d_mag_sqr", "temperature^2")
-
-# Read database
-OpenDatabase(fname)
-
-# add the main plot (Window 1)
-AddPlot("Pseudocolor", "vort3d_mag_sqr", 1, 1)
-AddOperator("Slice", 1)
-DrawPlots()
 
 # add the lineout curve plots (Window 2)
-aa = LinoutData(p0,p1,'xc')
-# Lineout(p0, p1, ("xc", "zc", "vort2d_mag_sqr", "default"))
-# Lineout(p2, p3, ("vort2d_mag_sqr", "default"))
-# Lineout(p4, p5, ("vort2d_mag_sqr", "default"))
+var_name_list = [rho_fluct, zvel_fluct]
+op1_top = LinoutOps(p0, p1, var_name_list)
+op2_bot = LinoutOps(p2, p3, var_name_list)
+op3_mid = LinoutOps(p4, p5, var_name_list)
+
 
 # loop over all time steps and store the line-out data
 for i in range(TimeSliderGetNStates()):
@@ -129,6 +129,7 @@ for i in range(TimeSliderGetNStates()):
 
     data = np.array(data)
     np.savetxt(filename, data, header=headertxt.expandtabs(16))
+
 
 
 

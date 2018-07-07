@@ -53,6 +53,13 @@ class VisitSetupBase(object):
         exprs.define("mesh_y_zonal", "recenter(coord(%s)[1])" % mesh_name)
         exprs.define("mesh_z_zonal", "recenter(coord(%s)[2])" % mesh_name)
 
+    def plotSlice(self, var_name):
+        # plot Pseudo-color
+        visit.AddPlot("Pseudocolor", var_name)
+        visit.AddOperator("Slice")
+        visit.DrawPlots()
+
+
 
 
 class ReductionOps(VisitSetupBase):
@@ -110,26 +117,29 @@ class ReductionOps(VisitSetupBase):
 
 
 
-class LinoutData(VisitSetupBase):
+class LinoutOps(VisitSetupBase):
 
-    def __init__(self, point1, point2, var_name):
-        super(LinoutData, self).__init__()
+    def __init__(self, point1, point2, var_name_list):
+        super(LinoutOps, self).__init__()
         self.p1 = point1
         self.p2 = point2
-        self.__create__(var_name)
+        self.var_name_list = var_name_list
+        self.plot_id_dic = {key: value for (key, value) in enumerate(var_name_list)}
+        self.__create__()
 
-    def __create__(self,var_name):
-        visit.Lineout(self.p1, self.p2, var_name)
+    def __create__(self):
+        visit.Lineout(self.p1, self.p2, self.var_name_list)
         return
 
-    @staticmethod
-    def update_curve(window_id, plot_id_list, p1, p2):
+    def update_curve(self, var_name_list, p1, p2, window_id=2):
         """
         Updates the curve by adjusting points of the lineout operator
-        :param plot_id_list: a list of plot id's to be modified
+        :param var_name_list: a list of variable names to be modified
         :param p1: point 1
         :param p2: point 2
+        :param window_id  : the active window id (usually=2)
         """
+        plot_id_list = self.plot_id_dic[var_name_list]
         visit.SetActiveWindow(window_id)
         visit.SetActivePlots(plot_id_list)
         atts = visit.LineoutAttributes()
@@ -165,11 +175,6 @@ def average_xy(var_name, num_samples, ts = None):
 
     # create the reduction object with the right operator
     fld_bar = ReductionOps(op='avg', var_name=var_name)
-
-    # plot Pseudo-color
-    visit.AddPlot("Pseudocolor", var_name)
-    visit.AddOperator("Slice")
-    visit.DrawPlots()
 
     # find the spatial extents of the comp. domain
     sext =fld_bar.mesh_spatial_extents()
