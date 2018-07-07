@@ -11,6 +11,8 @@ import sys
 sys.path.append(visit_python_package)
 import numpy as np
 from visit import *
+from visitOps import *
+
 Launch(vdir=visit_path)
 
 
@@ -62,9 +64,10 @@ AddOperator("Slice", 1)
 DrawPlots()
 
 # add the lineout curve plots (Window 2)
-Lineout(p0, p1, ("xc", "zc", "vort2d_mag_sqr", "default"))
-Lineout(p2, p3, ("vort2d_mag_sqr", "default"))
-Lineout(p4, p5, ("vort2d_mag_sqr", "default"))
+aa = LinoutData(p0,p1,'xc')
+# Lineout(p0, p1, ("xc", "zc", "vort2d_mag_sqr", "default"))
+# Lineout(p2, p3, ("vort2d_mag_sqr", "default"))
+# Lineout(p4, p5, ("vort2d_mag_sqr", "default"))
 
 # loop over all time steps and store the line-out data
 for i in range(TimeSliderGetNStates()):

@@ -1,6 +1,6 @@
 from visit import *
 from visit_utils import exprs, query, common
-
+import numpy as np
 
 visit_path = "/usr/local/visit/bin"
 # visit_python_package = "/usr/local/visit/current/linux-x86_64/lib/site-packages"
@@ -110,6 +110,47 @@ class ReductionOps(VisitSetupBase):
 
 
 
+class LinoutData(VisitSetupBase):
+
+    def __init__(self, point1, point2, var_name):
+        super(LinoutData, self).__init__()
+        self.p1 = point1
+        self.p2 = point2
+        self.__create__(var_name)
+
+    def __create__(self,var_name):
+        visit.Lineout(self.p1, self.p2, var_name)
+        return
+
+    @staticmethod
+    def update_curve(window_id, plot_id_list, p1, p2):
+        """
+        Updates the curve by adjusting points of the lineout operator
+        :param plot_id_list: a list of plot id's to be modified
+        :param p1: point 1
+        :param p2: point 2
+        """
+        visit.SetActiveWindow(window_id)
+        visit.SetActivePlots(plot_id_list)
+        atts = visit.LineoutAttributes()
+        atts.point1 = p1
+        atts.point2 = p2
+        visit.SetOperatorOptions(atts)
+        return
+
+    @staticmethod
+    def extract_curve(window_id, plot_id):
+        """
+        Extracts curve data in the form of numpy array
+        :param window_id    = a scalar for the active window id where Lineout curves are plotted
+        :param plot_id_list = a list of plots to
+        """
+        visit.SetActiveWindow(window_id)
+        visit.SetActivePlots(plot_id)
+        data = visit.GetPlotInformation()["Curve"]
+        return np.array(data).reshape((len(data) / 2, -1))[:, 1]
+
+
 
 def average_xy(var_name, num_samples, ts = None):
     """
@@ -169,7 +210,7 @@ def main():
     rho = 'temperature'
     launch_visit(visit_path)
     OpenDatabase(dbname)
-    rho_bar   = calc_ubar(rho, 50)
+    rho_bar   = calc_ubar(rho, 500)
     rho_fluct = calc_ufluct(rho, rho_bar)
     ChangeActivePlotsVar(rho_bar)
     ChangeActivePlotsVar(rho_fluct)
