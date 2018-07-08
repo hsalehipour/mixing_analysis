@@ -119,46 +119,64 @@ class ReductionOps(VisitSetupBase):
 
 class LinoutOps(VisitSetupBase):
 
-    def __init__(self, point1, point2, var_name_list):
+    def __init__(self, line_dic, var_name_list):
+        """
+        :param line_list: a list of input lines including N couple of tuples, denoting the two points of a line.
+        :param var_name_list: a list of variables for which curves are plotted.
+        """
         super(LinoutOps, self).__init__()
-        self.p1 = point1
-        self.p2 = point2
+        self.line_dic = line_dic
         self.var_name_list = var_name_list
-        self.plot_id_dic = {key: value for (key, value) in enumerate(var_name_list)}
-        self.__create__()
+        self.nvar   = len(var_name_list)
+        self.nlines = len(line_dic)
+        self.nplots = self.nvar * self.nlines
+        self.__set_plotID__()
 
-    def __create__(self):
-        visit.Lineout(self.p1, self.p2, self.var_name_list)
+
+    def __set_plotID__(self):
+        """
+        Sets a mapping dictionary between line_id and a list of associated plot_ids.
+        e.g. {'line01' : (plot_id1, plot_id2), 'line02': (plot_id3, plot_id4)}
+        """
+        line_names = self.line_dic.keys()
+        plot_ids   = [ii for ii in range(self.nplots)]
+        plot_ids  = [ tuple(plot_ids[ii:ii+self.nvar]) for ii in range(0, self.nplots, self.nvar) ]
+        self.plotID_dic = dict(zip(line_names, plot_ids))
+
+    def create(self):
+        for ii in range(self.nlines):
+            p1, p2 = self.line_dic.values()[ii]
+            visit.Lineout(p1, p2, self.var_name_list)
         return
 
-    def update_curve(self, var_name_list, p1, p2, window_id=2):
+    def update(self, line_name, p1, p2, window_id=2):
         """
         Updates the curve by adjusting points of the lineout operator
-        :param var_name_list: a list of variable names to be modified
+        :param line_name: the "name" of the line whose points are to be updated.
         :param p1: point 1
         :param p2: point 2
         :param window_id  : the active window id (usually=2)
         """
-        plot_id_list = self.plot_id_dic[var_name_list]
+        plot_ids = self.plotID_dic[line_name]
         visit.SetActiveWindow(window_id)
-        visit.SetActivePlots(plot_id_list)
+        visit.SetActivePlots(plot_ids)
         atts = visit.LineoutAttributes()
         atts.point1 = p1
         atts.point2 = p2
         visit.SetOperatorOptions(atts)
         return
 
-    @staticmethod
-    def extract_curve(window_id, plot_id):
+    def extract(self, line_name, var_name, window_id=2):
         """
         Extracts curve data in the form of numpy array
         :param window_id    = a scalar for the active window id where Lineout curves are plotted
         :param plot_id_list = a list of plots to
         """
+        plot_id = self.plotID_dic[line_name][self.var_name_list.index(var_name)]
         visit.SetActiveWindow(window_id)
         visit.SetActivePlots(plot_id)
         data = visit.GetPlotInformation()["Curve"]
-        return np.array(data).reshape((len(data) / 2, -1))[:, 1]
+        return np.array(data).reshape((-1, 2))[:, 1]
 
 
 

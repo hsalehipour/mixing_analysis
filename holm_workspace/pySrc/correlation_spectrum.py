@@ -34,6 +34,7 @@ elif density_layer:
 # Read database
 rho = 'temperature'
 zvel= 'z_velocity'
+nbins = 1000
 launch_visit(visit_path)
 OpenDatabase(dbname)
 
@@ -44,12 +45,12 @@ driver.plotSlice(rho)
 xmin, xmax, zmin, zmax = driver.mesh_spatial_extents()
 
 # caculate rho' = rho - <rho>_{xy}
-rho_bar   = calc_ubar(rho, 500)
+rho_bar   = calc_ubar(rho, nbins)
 rho_fluct = calc_ufluct(rho, rho_bar)
 ChangeActivePlotsVar(rho_bar)
 
 # calculate w' = w - <w>_{xy}
-zvel_bar   = calc_ubar(zvel, 500)
+zvel_bar   = calc_ubar(zvel, nbins)
 zvel_fluct = calc_ufluct(zvel, zvel_bar)
 
 
@@ -64,9 +65,10 @@ p5 = (xmax, 0.0, 0.0)
 
 # add the lineout curve plots (Window 2)
 var_name_list = [rho_fluct, zvel_fluct]
-op1_top = LinoutOps(p0, p1, var_name_list)
-op2_bot = LinoutOps(p2, p3, var_name_list)
-op3_mid = LinoutOps(p4, p5, var_name_list)
+line_dix = {'top_flank': (p0, p1),
+            'bot_flank': (p2, p3),
+            'interface': (p4, p5)}
+curves = LinoutOps(line_dix, var_name_list)
 
 
 # loop over all time steps and store the line-out data
@@ -75,60 +77,37 @@ for i in range(TimeSliderGetNStates()):
     # Change time slider
     SetTimeSliderState(i)
 
-    # activate curve plots
-    SetActiveWindow(2)
+    if i == 0:
+        curves.create()
 
-    # This is necessary when the line-out points are time-dependent
-    # top flank
-    SetActivePlots((0,1,2,3))
-    a1 = LineoutAttributes()
-    a1.point1 = (xmin, zl[i], 0.0)
-    a1.point2 = (xmax, zl[i], 0.0)
-    SetOperatorOptions(a1)
+    # extract the information at the top flank
+    point1 = (xmin, zl[i], 0.0)
+    point2 = (xmax, zl[i], 0.0)
+    curves.update ('top_flank', point1, point2, window_id=2)
+    rho_fluct_top = curves.extract('top_flank', rho_fluct , window_id=2)
+    zvel_fluct_top= curves.extract('top_flank', zvel_fluct, window_id=2)
 
-    # bottom flank
-    SetActivePlots((4,5))
-    a2 = LineoutAttributes()
-    a2.point1 = (xmin, -zl[i], 0.0)
-    a2.point2 = (xmax, -zl[i], 0.0)
-    SetOperatorOptions(a2)
+    # extract the information at the top flank
+    point1 = (xmin, -zl[i], 0.0)
+    point2 = (xmax, -zl[i], 0.0)
+    curves.update ('bot_flank', point1, point2, window_id=2)
+    rho_fluct_bot = curves.extract('bot_flank', rho_fluct , window_id=2)
+    zvel_fluct_bot= curves.extract('bot_flank', zvel_fluct, window_id=2)
 
-    # Get the (x-z) coord locations of the line-out operation
-    SetActivePlots(0)
-    xc = GetPlotInformation()["Curve"]
-    SetActivePlots(1)
-    zc = GetPlotInformation()["Curve"]
 
-    # get the values of the plotted field at the line-out operation
-    SetActivePlots(2)
-    vort2d_top = GetPlotInformation()["Curve"]
-    SetActivePlots(3)
-    vort3d_top = GetPlotInformation()["Curve"]
-
-    SetActivePlots(4)
-    vort2d_bot = GetPlotInformation()["Curve"]
-    SetActivePlots(5)
-    vort3d_bot = GetPlotInformation()["Curve"]
-
-    # middle interface
-    SetActivePlots(6)
-    vort2d_z0 = GetPlotInformation()["Curve"]
-    SetActivePlots(7)
-    vort3d_z0 = GetPlotInformation()["Curve"]
-
-    filename = simname + '/soc.'+str(i).zfill(4) + '.dat'
-    headertxt = 'x \t z \t vort2d(top) \t vort2d(bot) \t vort3d(top) \t vort3d(bot) \t vort2d(z=0) \t vort3d(z=0)'
-    data =[        [xc[2 * idx + 1],
-                    zc[2 * idx + 1],
-            vort2d_top[2 * idx + 1],
-            vort2d_bot[2 * idx + 1],
-            vort3d_top[2 * idx + 1],
-            vort3d_bot[2 * idx + 1],
-            vort2d_z0 [2 * idx + 1],
-            vort3d_z0 [2 * idx + 1]] for idx in range(len(xc) / 2)]
-
-    data = np.array(data)
-    np.savetxt(filename, data, header=headertxt.expandtabs(16))
+    # filename = simname + '/soc.'+str(i).zfill(4) + '.dat'
+    # headertxt = 'x \t z \t vort2d(top) \t vort2d(bot) \t vort3d(top) \t vort3d(bot) \t vort2d(z=0) \t vort3d(z=0)'
+    # data =[        [xc[2 * idx + 1],
+    #                 zc[2 * idx + 1],
+    #         vort2d_top[2 * idx + 1],
+    #         vort2d_bot[2 * idx + 1],
+    #         vort3d_top[2 * idx + 1],
+    #         vort3d_bot[2 * idx + 1],
+    #         vort2d_z0 [2 * idx + 1],
+    #         vort3d_z0 [2 * idx + 1]] for idx in range(len(xc) / 2)]
+    #
+    # data = np.array(data)
+    # np.savetxt(filename, data, header=headertxt.expandtabs(16))
 
 
 
