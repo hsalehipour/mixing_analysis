@@ -157,6 +157,7 @@ class LinoutOps(VisitSetupBase):
         :param p2: point 2
         :param window_id  : the active window id (usually=2)
         """
+        self.line_dic[line_name] = (p1, p2)
         plot_ids = self.plotID_dic[line_name]
         visit.SetActiveWindow(window_id)
         visit.SetActivePlots(plot_ids)
@@ -169,8 +170,9 @@ class LinoutOps(VisitSetupBase):
     def extract(self, line_name, var_name, window_id=2):
         """
         Extracts curve data in the form of numpy array
-        :param window_id    = a scalar for the active window id where Lineout curves are plotted
-        :param plot_id_list = a list of plots to
+        :param line_name: "name" of the line where Lineout curves are plotted
+        :param var_name : "name" of the variable to be extracted
+        :param window_id : a scalar for the active window id where Lineout curves are plotted
         """
         plot_id = self.plotID_dic[line_name][self.var_name_list.index(var_name)]
         visit.SetActiveWindow(window_id)
@@ -225,21 +227,3 @@ def calc_ufluct(ufld, ubar):
     u_fluct = "%s_fluct" % ufld
     exprs.define(u_fluct, "%s - %s" % (ufld, ubar))
     return u_fluct
-
-def main():
-    # dbname = "~/Downloads/tutorial_data/varying.visit"
-    dbname  ="~/REPOs/mixing_analysis/holm_workspace/data/holm.nek5000"
-
-    rho = 'temperature'
-    launch_visit(visit_path)
-    OpenDatabase(dbname)
-    rho_bar   = calc_ubar(rho, 500)
-    rho_fluct = calc_ufluct(rho, rho_bar)
-    ChangeActivePlotsVar(rho_bar)
-    ChangeActivePlotsVar(rho_fluct)
-
-    pass
-
-# if __visit_script_file__ == __visit_source_file__:
-if __name__ == "__main__":
-    main()
