@@ -69,10 +69,11 @@ for i in range(visit.TimeSliderGetNStates()):
     # Change time slider
     visit.SetTimeSliderState(i)
 
+    # create all the curves
     if i == 0:
         curves.create()
 
-    # extract the information at the top flank
+    # update the curves based on time-dependent lines
     if i > 0:
         p0 = (xmin,  zl[i], 0.0)
         p1 = (xmax,  zl[i], 0.0)
@@ -81,7 +82,7 @@ for i in range(visit.TimeSliderGetNStates()):
         curves.update('top_flank', p0, p1, window_id=2)
         curves.update('bot_flank', p2, p3, window_id=2)
 
-    # extract the information at the top flank
+    # extract the curve data
     rho_fluct_top = curves.extract('top_flank', rho_fluct , window_id=2)
     zvel_fluct_top= curves.extract('top_flank', zvel_fluct, window_id=2)
     rho_fluct_bot = curves.extract('bot_flank', rho_fluct , window_id=2)
