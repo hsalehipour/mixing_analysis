@@ -41,6 +41,12 @@ class VisitSetupBase(object):
         """
         return self.mesh_md().GetMeshes(0).name
 
+    def get_times(self):
+        """
+        Fetches the times in the active database
+        """
+        return self.mesh_md().times
+
     def setup_exprs(self):
         """
         Sets up spatial expressions to use with DDF.
