@@ -4,30 +4,24 @@
 # Date: 18 Dec 2017
 #================================
 from visitOps import *
-import matplotlib.pyplot as plt
+
+
 
 #================================
 # User changes this line
 simname ="Re-6000-Ri-016-Pr-8"
-shear_layer   = False
-density_layer = True
-#================================
 
 # Initial setup
 path_remote = 'niagara.scinet.utoronto.ca:/gpfs/fs1/home/p/peltier/hsalehip/scratch/soc_paper/holm/'
 path_local  = '/home/hesam/REPOs/mixing_analysis/holm_workspace/data/'
 dbname = path_remote + 'holm.nek5000'
 
+
 # Read the position of upper and lower flanks of shear and density layers
-# siminfo     = np.loadtxt(path_local+simname+"/siminfo.dat")
 data_flanks = np.loadtxt(path_local+simname+"/flanks.dat")
 time = data_flanks[:,0]
 Irho = data_flanks[:,1]
 Iu   = data_flanks[:,2]
-if shear_layer:
-    zl = Iu/2.
-elif density_layer:
-    zl = Irho/2.
 
 # Read database
 rho = 'temperature'
@@ -49,10 +43,10 @@ for ts in range(nts):
     print "[analyzing database at time = %d]" % dbtime
 
     # Change time slider
-    visit.SetActiveWindow(1)
     visit.SetTimeSliderState(ts)
 
     # caculate rho' = rho - <rho>_{xy}
+    visit.SetActiveWindow(1)
     rho_bar = calc_ubar(rho, nbins)
     rho_fluct = calc_ufluct(rho, rho_bar)
     visit.ChangeActivePlotsVar(rho_fluct)
@@ -64,20 +58,26 @@ for ts in range(nts):
     # define all the points for the lineout operation
     dt = time[1]-time[0]
     it = np.where(np.abs(time - dbtime) < 0.2*dt)[0][0]
-    p0 = (xmin,  zl[it], 0.0)
-    p1 = (xmax,  zl[it], 0.0)
-    p2 = (xmin, -zl[it], 0.0)
-    p3 = (xmax, -zl[it], 0.0)
-    p4 = (xmin, 0.0, 0.0)
-    p5 = (xmax, 0.0, 0.0)
+    p0 = (xmin,  Irho[it]/2., 0.0)
+    p1 = (xmax,  Irho[it]/2., 0.0)
+    p2 = (xmin, -Irho[it]/2 , 0.0)
+    p3 = (xmax, -Irho[it]/2 , 0.0)
+    p4 = (xmin,  Iu[it]/2.  , 0.0)
+    p5 = (xmax,  Iu[it]/2.  , 0.0)
+    p6 = (xmin, -Iu[it]/2   , 0.0)
+    p7 = (xmax, -Iu[it]/2   , 0.0)
+    p8 = (xmin, 0.0, 0.0)
+    p9 = (xmax, 0.0, 0.0)
+    line_dix = {'z=Irho/2'  : (p0, p1),
+                'z=-Irho/2' : (p2, p3),
+                'z=Iu/2'    : (p4, p5),
+                'z=-Iu/2'   : (p6, p7),
+                'z=0'       : (p8, p9)}
 
     # create all the curves
     if ts == 0:
         # add the lineout curve plots (Window 2)
         var_name_list = [rho_fluct, zvel_fluct]
-        line_dix = {'top_flank': (p0, p1),
-                    'bot_flank': (p2, p3),
-                    'interface': (p4, p5)}
         curves = LinoutOps(line_dix, var_name_list)
         curves.create()
 
@@ -85,28 +85,14 @@ for ts in range(nts):
     if ts > 0:
         visit.SetActiveWindow(2)
         visit.SetTimeSliderState(ts)
-        curves.update('top_flank', p0, p1, window_id=2)
-        curves.update('bot_flank', p2, p3, window_id=2)
+        curves.update(line_dix, window_id=2)
 
-    # extract the curve data
-    rho_fluct_top = curves.extract('top_flank', rho_fluct , window_id=2)
-    zvel_fluct_top= curves.extract('top_flank', zvel_fluct, window_id=2)
-    rho_fluct_bot = curves.extract('bot_flank', rho_fluct , window_id=2)
-    zvel_fluct_bot= curves.extract('bot_flank', zvel_fluct, window_id=2)
+    # extract all the curve data in DataFrame form
+    df = curves.extract_all(window_id=2)
+    df['time'] = dbtime
 
-    # perform cross-correlation
-    cc_buoy_flux_top = np.correlate(rho_fluct_top, zvel_fluct_top, 'same')
-    cc_buoy_flux_bot = np.correlate(rho_fluct_bot, zvel_fluct_bot, 'same')
-
-    aa = np.fft.fft(cc_buoy_flux_top)
-    plt.loglog(aa * aa.conj())
-    plt.show()
-
-
-
-
-
-
-
+    # save data for offline processing
+    filename = path_local+simname + '/cc.' + str(ts).zfill(4) + '.dat'
+    save_data(df, filename)
 
 

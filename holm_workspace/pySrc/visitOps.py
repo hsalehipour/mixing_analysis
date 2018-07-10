@@ -1,6 +1,7 @@
 from visit import *
 from visit_utils import exprs, query, common
 import numpy as np
+import pandas as pd
 
 visit_path = "/usr/local/visit/bin"
 # visit_python_package = "/usr/local/visit/current/linux-x86_64/lib/site-packages"
@@ -155,22 +156,23 @@ class LinoutOps(VisitSetupBase):
             visit.Lineout(p1, p2, self.var_name_list)
         return
 
-    def update(self, line_name, p1, p2, window_id=2):
+    def update(self, line_dic_updated, window_id=2):
         """
         Updates the curve by adjusting points of the lineout operator
-        :param line_name: the "name" of the line whose points are to be updated.
-        :param p1: point 1
-        :param p2: point 2
+        :param line_dic_updated: the updated dictionary of line names with their corresponding points
         :param window_id  : the active window id (usually=2)
         """
-        self.line_dic[line_name] = (p1, p2)
-        plot_ids = self.plotID_dic[line_name]
-        visit.SetActiveWindow(window_id)
-        visit.SetActivePlots(plot_ids)
-        atts = visit.LineoutAttributes()
-        atts.point1 = p1
-        atts.point2 = p2
-        visit.SetOperatorOptions(atts)
+        # find the difference between the new dict and the old one
+        line_diff = dictdiff(self.line_dic, line_dic_updated)
+        self.line_dic = line_dic_updated
+        for line_name in line_diff.keys():
+            plot_ids = self.plotID_dic[line_name]
+            visit.SetActiveWindow(window_id)
+            visit.SetActivePlots(plot_ids)
+            atts = visit.LineoutAttributes()
+            atts.point1 = line_diff[line_name][0]
+            atts.point2 = line_diff[line_name][1]
+            visit.SetOperatorOptions(atts)
         return
 
     def extract(self, line_name, var_name, window_id=2):
@@ -186,6 +188,19 @@ class LinoutOps(VisitSetupBase):
         data = visit.GetPlotInformation()["Curve"]
         return np.array(data).reshape((-1, 2))[:, 1]
 
+
+    def extract_all(self, window_id=2):
+        """
+        This function will extract the numpy array of all variables in the "var_name_list" on all the lines defined in
+        "line_dic"
+        :param window_id: the active window id where curves are plotted
+        :return:
+        """
+        d = {}
+        for line_name in self.line_dic.keys():
+            for var_name in self.var_name_list:
+                d[var_name+'@'+line_name] = self.extract(line_name, var_name, window_id)
+        return pd.DataFrame(data=d)
 
 
 def average_xy(var_name, num_samples, ts = None):
@@ -233,3 +248,25 @@ def calc_ufluct(ufld, ubar):
     u_fluct = "%s_fluct" % ufld
     exprs.define(u_fluct, "%s - %s" % (ufld, ubar))
     return u_fluct
+
+def dictdiff(d1, d2):
+    """
+    helper function to find the difference between two input dictionaries
+    :param d1:
+    :param d2:
+    :return:
+    """
+    return dict(set(d2.iteritems()) - set(d1.iteritems()))
+
+
+
+def save_data(df,fname):
+    """
+    "saves the the pands DataFrame into CSV file
+    :param fname: file_name
+    :param df: DataFrame
+    :return:
+    """
+    df.to_csv(fname, sep='\t')
+    return
+
