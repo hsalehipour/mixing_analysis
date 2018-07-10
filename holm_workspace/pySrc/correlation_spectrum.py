@@ -9,19 +9,20 @@ from visitOps import *
 
 #================================
 # User changes this line
-simname ="Re-6000-Ri-016-Pr-8"
+# simname ="Re-6000-Ri-016-Pr-8"
+simname ="kh-Re-6000-Ri-016-Pr-8"
 
 # Initial setup
-path_remote = 'niagara.scinet.utoronto.ca:/gpfs/fs1/home/p/peltier/hsalehip/scratch/soc_paper/holm/'
+path_remote = 'niagara.scinet.utoronto.ca:/gpfs/fs1/home/p/peltier/hsalehip/scratch/soc_paper/kh/'
 path_local  = '/home/hesam/REPOs/mixing_analysis/holm_workspace/data/'
-dbname = path_remote + 'holm.nek5000'
+dbname = path_remote + 'kh3d.nek5000'
 
 
 # Read the position of upper and lower flanks of shear and density layers
 data_flanks = np.loadtxt(path_local+simname+"/flanks.dat")
-time = data_flanks[:,0]
-Irho = data_flanks[:,1]
-Iu   = data_flanks[:,2]
+time = data_flanks[:, 0]
+Irho = data_flanks[:, 1]
+Iu   = data_flanks[:, 2]
 
 # Read database
 rho = 'temperature'

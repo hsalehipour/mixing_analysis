@@ -166,6 +166,7 @@ class LinoutOps(VisitSetupBase):
         line_diff = dictdiff(self.line_dic, line_dic_updated)
         self.line_dic = line_dic_updated
         for line_name in line_diff.keys():
+            print "[Updating LineOut points for line '%s']" % line_name
             plot_ids = self.plotID_dic[line_name]
             visit.SetActiveWindow(window_id)
             visit.SetActivePlots(plot_ids)
@@ -188,7 +189,6 @@ class LinoutOps(VisitSetupBase):
         data = visit.GetPlotInformation()["Curve"]
         return np.array(data).reshape((-1, 2))[:, 1]
 
-
     def extract_all(self, window_id=2):
         """
         This function will extract the numpy array of all variables in the "var_name_list" on all the lines defined in
@@ -201,6 +201,7 @@ class LinoutOps(VisitSetupBase):
             for var_name in self.var_name_list:
                 d[var_name+'@'+line_name] = self.extract(line_name, var_name, window_id)
         return pd.DataFrame(data=d)
+
 
 
 def average_xy(var_name, num_samples, ts = None):
@@ -257,8 +258,6 @@ def dictdiff(d1, d2):
     :return:
     """
     return dict(set(d2.iteritems()) - set(d1.iteritems()))
-
-
 
 def save_data(df,fname):
     """

@@ -30,3 +30,5 @@ holm_workspace/src/fig/
 holm_workspace/pySrc/visitlog\.py
 
 *.ultra
+
+*.pyc
