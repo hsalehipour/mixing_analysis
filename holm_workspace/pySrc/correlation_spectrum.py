@@ -27,6 +27,7 @@ Iu   = data_flanks[:, 2]
 # Read database
 rho = 'temperature'
 zvel= 'z_velocity'
+x_cord  = 'mesh_x_nodal'
 nbins = 1000
 launch_visit(visit_path)
 visit.OpenDatabase(dbname)
@@ -82,6 +83,11 @@ for ts in range(nts):
         curves = LinoutOps(line_dix, var_name_list)
         curves.create()
 
+        #add lineout to get x-coordinate
+        centerline_dic = {'z=0': line_dix['z=0']}
+        centerline = LinoutOps(centerline_dic, [x_cord])
+        centerline.create()
+
     # update the curves based on time-dependent lines
     if ts > 0:
         visit.SetActiveWindow(2)
@@ -89,7 +95,9 @@ for ts in range(nts):
         curves.update(line_dix, window_id=2)
 
     # extract all the curve data in DataFrame form
-    df = curves.extract_all(window_id=2)
+    df1 = centerline.extract_all(window_id=2)
+    df2 = curves.extract_all(window_id=2)
+    df = pd.concat([df1, df2], axis=1)
     df['time'] = dbtime
 
     # save data for offline processing
