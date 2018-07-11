@@ -10,12 +10,12 @@ from visitOps import *
 #================================
 # User changes this line
 # simname ="Re-6000-Ri-016-Pr-8"
-simname ="kh-Re-6000-Ri-016-Pr-8"
+simname ="Re-6000-Ri-016-Pr-8"
 
 # Initial setup
-path_remote = 'niagara.scinet.utoronto.ca:/gpfs/fs1/home/p/peltier/hsalehip/scratch/soc_paper/kh/'
+path_remote = 'niagara.scinet.utoronto.ca:/gpfs/fs1/home/p/peltier/hsalehip/scratch/soc_paper/holm/r3/'
 path_local  = '/home/hesam/REPOs/mixing_analysis/holm_workspace/data/'
-dbname = path_remote + 'kh3d.nek5000'
+dbname = path_remote + 'holm.nek5000'
 
 
 # Read the position of upper and lower flanks of shear and density layers
@@ -27,7 +27,7 @@ Iu   = data_flanks[:, 2]
 # Read database
 rho = 'temperature'
 zvel= 'z_velocity'
-x_cord  = 'mesh_x_nodal'
+xmesh  = 'mesh_x_nodal'
 nbins = 1000
 launch_visit(visit_path)
 visit.OpenDatabase(dbname)
@@ -85,7 +85,7 @@ for ts in range(nts):
 
         #add lineout to get x-coordinate
         centerline_dic = {'z=0': line_dix['z=0']}
-        centerline = LinoutOps(centerline_dic, [x_cord])
+        centerline = LinoutOps(centerline_dic, [xmesh])
         centerline.create()
 
     # update the curves based on time-dependent lines
@@ -95,10 +95,11 @@ for ts in range(nts):
         curves.update(line_dix, window_id=2)
 
     # extract all the curve data in DataFrame form
-    df1 = centerline.extract_all(window_id=2)
-    df2 = curves.extract_all(window_id=2)
-    df = pd.concat([df1, df2], axis=1)
+    centerline_plotid = len(var_name_list) * len(line_dix) + 1
+    xmesh_values = centerline.extract('z=0', xmesh, window_id=2, plot_id=centerline_plotid)
+    df = curves.extract_all(window_id=2)
     df['time'] = dbtime
+    df['xmesh']= xmesh_values
 
     # save data for offline processing
     filename = path_local+simname + '/cc.' + str(ts).zfill(4) + '.dat'
