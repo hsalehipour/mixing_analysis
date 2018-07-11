@@ -176,14 +176,16 @@ class LinoutOps(VisitSetupBase):
             visit.SetOperatorOptions(atts)
         return
 
-    def extract(self, line_name, var_name, window_id=2):
+    def extract(self, line_name, var_name, window_id=2, plot_id=None):
         """
         Extracts curve data in the form of numpy array
         :param line_name: "name" of the line where Lineout curves are plotted
         :param var_name : "name" of the variable to be extracted
         :param window_id : a scalar for the active window id where Lineout curves are plotted
+        :param plot_id   : plot id (usually none unless different LinoutOp objects share the same windows.
         """
-        plot_id = self.plotID_dic[line_name][self.var_name_list.index(var_name)]
+        if plot_id is None:
+            plot_id = self.plotID_dic[line_name][self.var_name_list.index(var_name)]
         visit.SetActiveWindow(window_id)
         visit.SetActivePlots(plot_id)
         data = visit.GetPlotInformation()["Curve"]
