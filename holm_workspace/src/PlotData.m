@@ -1962,6 +1962,55 @@ xlim([0, 180]);
 grid on; box on;
 %}
 
+%% SOC: cross spectrum of rho' and w'
+% This analysis is added on July 10, 2018 and for the purpose of my SOC
+% paper. Notice that the necessary data for this analysis must have been
+% already prepared through the python code in pySrc which drives visits and
+% calculates rho' and w' on various horizontal lines. 
+% 
+nfiles = length(dir([fadrs '/cc.*.dat']));
+for i=1:nfiles;
+    A = loadtxt([fadrs,'cc.000', num2str(i-1)','.dat'], 12, 1);
+    
+     % rho' at different z-levels
+    rho_fluct_Irho_bot  = A(2,:)';   
+    rho_fluct_Iu_bot    = A(3,:)';
+    rho_fluct_interf    = A(4,:)';
+    rho_fluct_Irho_top  = A(5,:)';   
+    rho_fluct_Iu_top    = A(6,:)';
+    
+    % w' at different z-levels
+    w_fluct_Irho_bot  = A(7,:)';   
+    w_fluct_Iu_bot    = A(8,:)';
+    w_fluct_interf    = A(9,:)';
+    w_fluct_Irho_top  = A(10,:)';   
+    w_fluct_Iu_top    = A(11,:)';
+    cctime = A(12,1);
+    np = size(A,2);
+
+    data_ZLevel1 = [rho_fluct_interf, w_fluct_interf];
+    data_ZLevel2 = [rho_fluct_Irho_bot, w_fluct_Irho_bot; 
+                    rho_fluct_Irho_top, w_fluct_Irho_top];
+    data_ZLevel3 = [rho_fluct_Iu_bot, w_fluct_Iu_bot;
+                    rho_fluct_Iu_top, w_fluct_Iu_top];
+    
+
+    figure(1);
+    [Pxy,F] = cpsd(rho_fluct_Iu_top, w_fluct_Iu_top,hanning(500),[],[],2*pi*np/Lx);
+    loglog(F,F.^2.*abs(Pxy))
+    hold all;
+
+    figure(2)
+    [Pxy,F] = cpsd(rho_fluct_Iu_bot, w_fluct_Iu_bot,hanning(500),[],[],2*pi*np/Lx);
+    loglog(F,F.^2.*abs(Pxy))
+    hold all;
+    
+    figure(3)
+    [Pxy,F] = cpsd(rho_fluct_interf, w_fluct_interf,hanning(500),[],[],2*pi*np/Lx);
+    loglog(F,F.^2.*abs(Pxy))
+    hold all;
+end
+
 %% ML Prediction data
 % Idea #1: given chi,eps and N2 --> predict eff!
 
