@@ -95,7 +95,7 @@ for ts in range(nts):
         curves.update(line_dix, window_id=2)
 
     # extract all the curve data in DataFrame form
-    centerline_plotid = len(var_name_list) * len(line_dix) + 1
+    centerline_plotid = len(var_name_list) * len(line_dix)
     xmesh_values = centerline.extract('z=0', xmesh, window_id=2, plot_id=centerline_plotid)
     df = curves.extract_all(window_id=2)
     df['time'] = dbtime
