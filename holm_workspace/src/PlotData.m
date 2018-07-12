@@ -1970,7 +1970,7 @@ grid on; box on;
 % 
 nfiles = length(dir([fadrs '/cc.*.dat']));
 for i=1:nfiles;
-    A = loadtxt([fadrs,'cc.000', num2str(i-1)','.dat'], 12, 1);
+    A = loadtxt([fadrs,'cc.000', num2str(i-1)','.dat'], 13, 1);
     
      % rho' at different z-levels
     rho_fluct_Irho_bot  = A(2,:)';   
@@ -1986,8 +1986,12 @@ for i=1:nfiles;
     w_fluct_Irho_top  = A(10,:)';   
     w_fluct_Iu_top    = A(11,:)';
     cctime = A(12,1);
-    np = size(A,2);
+    xmesh = A(13,:)';
+    nxp = size(A,2);
 
+    % uniform mesho for interpolation
+    xx = linspace(-Lx/2,Lx/2,nxp);
+    
     data_ZLevel1 = [rho_fluct_interf, w_fluct_interf];
     data_ZLevel2 = [rho_fluct_Irho_bot, w_fluct_Irho_bot; 
                     rho_fluct_Irho_top, w_fluct_Irho_top];
@@ -1996,17 +2000,23 @@ for i=1:nfiles;
     
 
     figure(1);
-    [Pxy,F] = cpsd(rho_fluct_Iu_top, w_fluct_Iu_top,hanning(500),[],[],2*pi*np/Lx);
+    yy1 = interp1(xmesh,rho_fluct_Iu_top,xx,'pchip');
+    yy2 = interp1(xmesh,w_fluct_Iu_top,xx,'pchip');
+    [Pxy,F] = cpsd(yy1, yy2, hanning(500),[],[],2*pi*nxp/Lx);
     loglog(F,F.^2.*abs(Pxy))
     hold all;
 
     figure(2)
-    [Pxy,F] = cpsd(rho_fluct_Iu_bot, w_fluct_Iu_bot,hanning(500),[],[],2*pi*np/Lx);
+    yy1 = interp1(xmesh,rho_fluct_Iu_bot,xx,'pchip');
+    yy2 = interp1(xmesh,w_fluct_Iu_bot,xx,'pchip');
+    [Pxy,F] = cpsd(yy1, yy2, hanning(500),[],[],2*pi*nxp/Lx);
     loglog(F,F.^2.*abs(Pxy))
     hold all;
     
     figure(3)
-    [Pxy,F] = cpsd(rho_fluct_interf, w_fluct_interf,hanning(500),[],[],2*pi*np/Lx);
+    yy1 = interp1(xmesh,rho_fluct_interf,xx,'pchip');
+    yy2 = interp1(xmesh,w_fluct_interf,xx,'pchip');
+    [Pxy,F] = cpsd(yy1, yy2, hanning(500),[],[],2*pi*nxp/Lx);
     loglog(F,F.^2.*abs(Pxy))
     hold all;
 end
