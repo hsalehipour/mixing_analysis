@@ -1969,7 +1969,7 @@ grid on; box on;
 % calculates rho' and w' on various horizontal lines. 
 % 
 nfiles = length(dir([fadrs '/cc.*.dat']));
-for i=1:nfiles;
+for i=2:nfiles;
     A = loadtxt([fadrs,'cc.000', num2str(i-1)','.dat'], 13, 1);
     
      % rho' at different z-levels
@@ -1991,34 +1991,60 @@ for i=1:nfiles;
 
     % uniform mesho for interpolation
     xx = linspace(-Lx/2,Lx/2,nxp);
-    
-    data_ZLevel1 = [rho_fluct_interf, w_fluct_interf];
-    data_ZLevel2 = [rho_fluct_Irho_bot, w_fluct_Irho_bot; 
-                    rho_fluct_Irho_top, w_fluct_Irho_top];
-    data_ZLevel3 = [rho_fluct_Iu_bot, w_fluct_Iu_bot;
-                    rho_fluct_Iu_top, w_fluct_Iu_top];
-    
+      
 
+    window_type = hanning(nxp/3); % type of filtering window
+    noverlap    = [];           % noverlap, defaul = length(window_type)/2
+    nfft        = [];           % number of freq (default = max(256, 2^p), p=nextpow2(nxp/length(window_type))
+    Fs          = nxp/(Lx/2/pi);% sampling frequency
+   
+    
+    % 1) cross correlation at top flank
     figure(1);
     yy1 = interp1(xmesh,rho_fluct_Iu_top,xx,'pchip');
     yy2 = interp1(xmesh,w_fluct_Iu_top,xx,'pchip');
-    [Pxy,F] = cpsd(yy1, yy2, hanning(500),[],[],2*pi*nxp/Lx);
-    loglog(F,F.^2.*abs(Pxy))
+    [Pxy,F] = cpsd(yy1, yy2, window_type , noverlap, nfft,Fs);
+    loglog(F, abs(Pxy))
+    xlim([1, max(F)]);  ylim([1e-11, 1e-2]);    grid on;
+    
+    % add various wavenumbers associated with different wavelength to the
+    % spectra.
+    [~, indtime]= min(abs(time-cctime));
+    [~, indlkx]  = min(abs(F-1./Lk_patch(indtime)));
+    [~, indlox]  = min(abs(F-1./Lo_patch(indtime)));
+    [~, indlenx] = min(abs(F-1./Len_patch(indtime)));
     hold all;
+    loglog(F(indlkx),abs(Pxy(indlkx)),'ks')
+    loglog(F(indlox),abs(Pxy(indlox)),'ko')
+    loglog(F(indlenx),abs(Pxy(indlenx)),'k*')
 
+    % 2) bottom flank
     figure(2)
     yy1 = interp1(xmesh,rho_fluct_Iu_bot,xx,'pchip');
     yy2 = interp1(xmesh,w_fluct_Iu_bot,xx,'pchip');
-    [Pxy,F] = cpsd(yy1, yy2, hanning(500),[],[],2*pi*nxp/Lx);
-    loglog(F,F.^2.*abs(Pxy))
+    [Pxy,F] = cpsd(yy1, yy2, window_type, noverlap, nfft, Fs);
+    loglog(F, abs(Pxy))
+    xlim([1, max(F)]);  ylim([1e-11, 1e-2]);     grid on;
     hold all;
+    % add other wavenumbers
+    loglog(F(indlkx),abs(Pxy(indlkx)),'ks')
+    loglog(F(indlox),abs(Pxy(indlox)),'ko')
+    loglog(F(indlenx),abs(Pxy(indlenx)),'k*')
     
     figure(3)
     yy1 = interp1(xmesh,rho_fluct_interf,xx,'pchip');
     yy2 = interp1(xmesh,w_fluct_interf,xx,'pchip');
-    [Pxy,F] = cpsd(yy1, yy2, hanning(500),[],[],2*pi*nxp/Lx);
-    loglog(F,F.^2.*abs(Pxy))
+    [Pxy,F] = cpsd(yy1, yy2, window_type, noverlap, nfft, Fs);
+    loglog(F, abs(Pxy))
+    xlim([1, max(F)]);  ylim([1e-11, 1e-2]);     grid on;
     hold all;
+    % add other wavenumbers
+    loglog(F(indlkx),abs(Pxy(indlkx)),'ks')
+    loglog(F(indlox),abs(Pxy(indlox)),'ko')
+    loglog(F(indlenx),abs(Pxy(indlenx)),'k*')
+    
+
+
 end
 
 %% ML Prediction data
