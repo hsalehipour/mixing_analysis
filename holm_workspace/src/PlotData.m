@@ -1509,7 +1509,7 @@ end
 
 %% SOC paper: Self-regulation Holmboe (part of that discussed ISSF/ICTAM)
 %
-ncnt        = 256;        % contour levels
+ncnt        = 4096;        % contour levels
 ncmp        = 1024;        % colormap levels
 nbin        = 512;         % number of bins
 tmax = max(time)-t2d;
@@ -1517,7 +1517,7 @@ indz   = z>=-5 & z<=5;
 indeps0= log10(epsbar(indz,:)/Dp/Pr)<0;%-6;
 [TTIME, TZZ]=meshgrid(time-t2d,z(indz));
 Ri_profile2 = Ri_profile(indz,:);
-Ri_profile2(abs(Ri_profile2)>5) = NaN;
+Ri_profile2(abs(Ri_profile2)>100) = NaN;
 Ri_profile2(indeps0) = NaN  ;
 if ic==1; profile_data_all = []; end;
 aa = Ri_profile2(:,time>=t3d);
@@ -1569,18 +1569,20 @@ xlim([0 tmax])
 % box on;
 % xlim([-10 200]);
 % 
-% 
-% figure;
-% contourf(TTIME,TZZ,Ri_profile2,ncnt,'LineStyle','none')
-% hndl = colorbar;       caxis([-1 1])
-% colormap(brewermap([],'Spectral'))
-% hold all;
-% plot(time-t2d,[-Irho/2; Irho/2],'m'  ,'LineWidth',2);
-% plot(time-t2d,[-Iu/2; Iu/2]    ,'--k','LineWidth',2);
-% title(hndl, '$Ri_g$','interpreter', 'latex');
-% xlabel('$t$-$t_{2d}$', 'interpreter','latex')
-% ylabel('$z$', 'interpreter','latex')
-% xlim([min(time-t2d) tmax])
+%
+%{
+figure;
+contourf(TTIME,TZZ,4*Ri_profile2,ncnt,'LineStyle','none')
+hndl = colorbar;       caxis([0 2])
+colormap(brewermap(ncmp,'Spectral'))
+hold all;
+plot(time-t2d,[-Irho/2; Irho/2],'k'  ,'LineWidth',2);
+plot(time-t2d,[-Iu/2; Iu/2]    ,'--k','LineWidth',2);
+title(hndl, '$4Ri_g$','interpreter', 'latex');
+xlabel('$t$-$t_{2d}$', 'interpreter','latex')
+ylabel('$z$', 'interpreter','latex')
+xlim([min(time-t2d) tmax])
+%}
 % 
 % 
 % figure(51);  hold all;
@@ -1968,6 +1970,7 @@ grid on; box on;
 % already prepared through the python code in pySrc which drives visits and
 % calculates rho' and w' on various horizontal lines. 
 % 
+%{
 nfiles = length(dir([fadrs '/cc.*.dat']));
 for i=2:nfiles;
     A = loadtxt([fadrs,'cc.000', num2str(i-1)','.dat'], 13, 1);
@@ -2046,6 +2049,47 @@ for i=2:nfiles;
 
 
 end
+%}
+
+%% SOC: histogram of pointwise L_en
+% This is very particular calculation based on "lscppholm*" data in 
+% holm/Re-6000-Ri-016-Pr-8/pp/ that outputs TKE, eps, chi and N2
+
+time_range = [indt3d, indt3d+20, indtrl, indtrl+20, indtrl+40];
+nhist = length(time_range);
+for ii=1:nhist
+    A = loadtxt([fadrs,'lsc_t',num2str(ii),'.curve'],2,1);
+    BinEdges  = 10.^A(1,:);
+    BinCounts = 10.^A(2,:);
+    omit = BinCounts<5;
+    BinCounts (omit) = NaN;
+    BinEdges  (omit) = NaN;
+    
+    indtime = time_range(ii);
+    [~, indlk]  = min(abs(BinEdges-Lk_patch(indtime)));
+    [~, indlo]  = min(abs(BinEdges-Lo_patch(indtime)));
+    [~, indlen]  = min(abs(BinEdges-Len_patch(indtime)));
+    
+    figure(1);
+    area = trapz(BinEdges(~isnan(BinEdges)),BinCounts(~isnan(BinCounts)));
+    loglog(BinEdges, BinCounts/area,'LineWidth',2)
+    hold all;
+%     loglog(BinEdges(indlk), BinCounts(indlk)/area,'ks','LineWidth',1,'MarkerFaceColor',[1 1 1],'MarkerSize',12)
+%     loglog(BinEdges(indlo), BinCounts(indlo)/area,'ko','LineWidth',1,'MarkerFaceColor',[1 1 1],'MarkerSize',12)
+%     loglog(BinEdges(indlen), BinCounts(indlen)/area,'k*','LineWidth',1,'MarkerFaceColor',[1 1 1],'MarkerSize',12)
+end
+xlabel('$L_{en}(\mathbf{x},t)$' , 'interpreter','latex')
+ylabel('PDF' , 'interpreter','latex')
+xlim([5e-3 1e4])
+ylim([1e-6 2e-1])
+xx=[1 1e4];
+plot(xx,1./xx.^2,'k--')
+% hndl = legend(   '$t_1 = t_{3d}$',...
+%                  '$t_2 = t_{3d}+40$',...
+%                  '$t_3 = t_{rl}$',...
+%                  '$t_4 = t_{rl}+40$',...
+%                  '$t_5 = t_{rl}+80$');
+% set(hndl, 'interpreter','latex');
 
 %% ML Prediction data
 % Idea #1: given chi,eps and N2 --> predict eff!
