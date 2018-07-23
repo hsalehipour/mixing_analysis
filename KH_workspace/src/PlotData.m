@@ -1393,24 +1393,6 @@ ylim([binmin binmax]);
 % plot(time-t2d,Sh_cum./D_cum);
 
 
-%% ML Training data
-% Idea #1: given chi,eps and N2 --> predict eff!
-
-% NOTE:
-% The sorting procedure is not so accurate for laminar flows just at the 
-% beginning and at the end of the simulation and thus leads to scattered 
-% oscilations in efficiency. We need to smooth out those episodes by:
-% (1) eff-->0 when apply a sigmoid function to the initial episode
-% (2) eff=smooth(eff) when Reb_pert < 7
-
-
-Reb_pert = abs(D2d+D3d)/nu./N2avg;
-ind_end = Reb_pert<7 & time>=trl;
-time_end = time(ind_end);
-my_eff = eff./(1+exp(-(time-t2d/2)));
-my_eff = max(my_eff,0);
-my_eff(ind_end)=smooth(my_eff(ind_end),length(time_end));
-
 %% ML: Osbron-Cox method: generating training data 
 %{
 if ic==1
@@ -1543,22 +1525,54 @@ if (ic==ncase)
 end
 %}
 
-%% Comparison b/w ML predictions and Cox-Osborn formula
+%% dl_Osborn routines
 
+% Idea #1: given chi,eps and N2 --> predict eff!
+
+% NOTE:
+% The sorting procedure is not so accurate for laminar flows just at the 
+% beginning and at the end of the simulation and thus leads to scattered 
+% oscilations in efficiency. We need to smooth out those episodes by:
+% (1) eff-->0 when apply a sigmoid function to the initial episode
+% (2) eff=smooth(eff) when Reb_pert < 7
+
+
+Reb_pert = abs(D2d+D3d)/nu./N2avg;
+ind_end = Reb_pert<7 & time>=trl;
+time_end = time(ind_end);
+my_eff = eff./(1+exp(-(time-t2d/2)));
+my_eff = max(my_eff,0);
+my_eff(ind_end)=smooth(my_eff(ind_end),round(length(time_end)));
+
+
+
+%% dl_Osborn: Comparison b/w ML predictions and Cox-Osborn formula
 % some usefull func handles
 r2_score = @(label,prediction) ...
-    1.0-sum((label-prediction).^2)/(sum((label-mean(label)).^2) + 1e-18);
- 
+    1.0-sum((label-prediction).^2)/(sum((label-mean(label)).^2) + 1e-18); 
 mean_square_err = @(label,prediction) mean((label-prediction).^2);
 
-eff_true = my_eff';
 chi = 2*kappa0*chi_pr;      chi = max(0., chi);
 B_cox = 0.5*mean(chi).*mean(N2)./mean(gradrho.^2);
 dissp = mean(epsbar);
 eff_cox = B_cox./(dissp + B_cox);
+eff_true = my_eff';
+
+if ic==1;    
+    eff_true_all = [];   
+    eff_cox_all  =[];
+end
+eff_true_all = [eff_true_all eff_true];
+eff_cox_all = [eff_cox_all eff_cox];
+
+% figure;
+% plot(time,eff_true,time,eff_cox);
+
+%% dl_Osborn: generate the training data
+dl_fname = 'KHI_training_data.dat';
+dl_osborn_write_input(dl_fname, my_eff, epsbar,N2, kappa0,z,Iu)
 
 
-    
 %% test
 % [effmx, indmx] = max(eff(ind));
 % Rimx = Ri_I(indt3d+indmx);

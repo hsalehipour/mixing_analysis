@@ -2055,6 +2055,7 @@ end
 % This is very particular calculation based on "lscppholm*" data in 
 % holm/Re-6000-Ri-016-Pr-8/pp/ that outputs TKE, eps, chi and N2
 
+%{
 time_range = [indt3d, indt3d+20, indtrl, indtrl+20, indtrl+40];
 nhist = length(time_range);
 for ii=1:nhist
@@ -2090,24 +2091,10 @@ plot(xx,1./xx.^2,'k--')
 %                  '$t_4 = t_{rl}+40$',...
 %                  '$t_5 = t_{rl}+80$');
 % set(hndl, 'interpreter','latex');
-
-%% ML Prediction data
-% Idea #1: given chi,eps and N2 --> predict eff!
-
-% NOTE:
-% The sorting procedure is not so accurate for laminar flows just at the 
-% beginning and at the end of the simulation and thus leads to scattered 
-% oscilations in efficiency. We need to smooth out those episodes by:
-% (1) eff-->0 when apply a sigmoid function to the initial episode
-% (2) eff=smooth(eff) when Reb_pert < 7
+%}
 
 
-Reb_pert = abs(D2d+D3d)/nu./N2avg;
-ind_end = Reb_pert<7 & time>=trl;
-time_end = time(ind_end);
-my_eff = eff./(1+exp(-(time-t2d/2)));
-my_eff = max(my_eff,0);
-my_eff(ind_end)=smooth(my_eff(ind_end),round(length(time_end)/10));
+
 
 %% ML: Osbron-Cox method: generating prediction HWI data 
 %{
@@ -2171,8 +2158,28 @@ if (ic==ncase)
 end
 %}
 
-%% Comparison b/w ML predictions and Cox-Osborn formula
+%% dl_Osborn routines
 
+% Idea #1: given chi,eps and N2 --> predict eff!
+
+% NOTE:
+% The sorting procedure is not so accurate for laminar flows just at the 
+% beginning and at the end of the simulation and thus leads to scattered 
+% oscilations in efficiency. We need to smooth out those episodes by:
+% (1) eff-->0 when apply a sigmoid function to the initial episode
+% (2) eff=smooth(eff) when Reb_pert < 7
+
+
+Reb_pert = abs(D2d+D3d)/nu./N2avg;
+ind_end = Reb_pert<7 & time>=trl;
+time_end = time(ind_end);
+my_eff = eff./(1+exp(-(time-t2d/2)));
+my_eff = max(my_eff,0);
+my_eff(ind_end)=smooth(my_eff(ind_end),round(length(time_end)/10));
+
+
+
+%% dl_Osborn: Comparison b/w ML predictions and Cox-Osborn formula
 % some usefull func handles
 r2_score = @(label,prediction) ...
     1.0-sum((label-prediction).^2)/(sum((label-mean(label)).^2) + 1e-18); 
@@ -2194,29 +2201,9 @@ eff_cox_all = [eff_cox_all eff_cox];
 % figure;
 % plot(time,eff_true,time,eff_cox);
 
-
-
-% Ri_cum(ic) = mean(N2avg)/mean(mean(shear.^2));
-% delrho = Irho*0.;
-% delU   = Iu*0.;
-% for i=1:ntime; 
-%     delrho(i) = interp1(z,rhobar(:,i), Irho(i)/2) - interp1(z,rhobar(:,i), -Irho(i)/2);
-%     delU  (i) = interp1(z,  ubar(:,i), Irho(i)/2) - interp1(z,  ubar(:,i), -Irho(i)/2);
-% end
-% % negative sign is for delrho
-% Ri_rho = -(g.*delrho./delU.^2).*Irho;
-% figure(66); hold all;
-% plot(time,Ri_rho);
-
-
-% aa=xsoc(:,1);
-% bb=vort3d_top(:,time_range(1));
-% for i=time_range; 
-%     aa=[aa;xsoc(2:end,i)+Lx*(i-1)]; 
-%     bb=[bb;vort3d_top(2:end,i)];
-% end
-% plot(aa,bb)
-
+%% dl_Osborn: generate the training data
+dl_fname = 'HWI_training_data.dat';
+dl_osborn_write_input(dl_fname, my_eff, epsbar,N2, kappa0,z,Iu)
 
 %% Draw vertical lines for t2d, t3d
 % drawvline(t2d ,ymaxplot,yminplot)
