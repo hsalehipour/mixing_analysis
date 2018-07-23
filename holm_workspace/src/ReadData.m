@@ -66,6 +66,7 @@ end
 fid = fclose(fid);
 
 %% 1-4 Read soc.*.dat files (if present)
+%{
 fadrs2 = [fadrs, 'soc\'];
 ifsoc = exist(fadrs2,'dir')==7;
 
@@ -102,6 +103,7 @@ for i=h0:hf
 end
 fid = fclose(fid);
 end
+%}
 
 %% 1-4 Read .okc files (if present) for x-z slices
 % fadrs2 = [fadrs, 'soc\'];
