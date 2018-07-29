@@ -1,4 +1,4 @@
-function dl_osborn_write_input(fname, my_eff, epsbar,N2, kappa0,z,Iu)
+function dl_osborn_write_input(fname, my_eff, epsbar,N2, kappa0,z,Iu,nrand_extra)
 % Purpose: write the input data for dl_osborn code.
     
     % Random number generator which generates N rand numbers within [a, b]
@@ -21,7 +21,6 @@ function dl_osborn_write_input(fname, my_eff, epsbar,N2, kappa0,z,Iu)
     Lz = max(z)-min(z);
     dz = Lz/(nz_profile-1);
     
-    nrand_extra = 10;
     for i=1:ntime;
         Lbot = rand_gen(min(z),-Iu(i),nrand_extra);
         Ltop = rand_gen(Iu(i),max(z) ,nrand_extra);
