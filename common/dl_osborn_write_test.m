@@ -35,7 +35,7 @@ function dl_osborn_write_test(fname, my_eff, epsbar,N2, kappa0,z,Lo_patch, Iu, n
             ft2 = interp1(z(indz), DD(indz,i)/Dp, zft);
             ft3 = interp1(z(indz), N2(indz,i)/N2tot, zft);
             features(:,1)   = ft1;
-            features(:,1:2) = [ft2', ft3'];
+            features(:,2:3) = [ft2', ft3'];
             features(:,4)   = my_eff(i);
             fprintf(fid1, '%17.9e, \t %17.9e, \t %17.9e, \t %17.9e \r\n', features');
         end

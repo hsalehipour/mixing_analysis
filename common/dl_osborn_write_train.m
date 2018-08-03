@@ -1,4 +1,4 @@
-function dl_osborn_write_train(fname, my_eff, epsbar,N2, kappa0,z,Lo_patch)
+function dl_osborn_write_train(fname, my_eff, epsbar,N2, kappa0,z)
 % Purpose: write the input data for dl_osborn code.
         
     % check to see if file exists to be appended 
@@ -13,7 +13,7 @@ function dl_osborn_write_train(fname, my_eff, epsbar,N2, kappa0,z,Lo_patch)
     nz_profile = 512;
     DD = epsbar;             
     DD = max(0., DD);      % eps, turbul dissip.
-    
+    Lz = max(z)-min(z);
    
     for i=1:ntime;                
         % number of data points in the selected range
@@ -23,7 +23,7 @@ function dl_osborn_write_train(fname, my_eff, epsbar,N2, kappa0,z,Lo_patch)
         
         % interpolate to the selected z-range
         zft = linspace(min(z),max(z),nz_profile);
-        ft1 = zft./Lo_patch(i);
+        ft1 = zft./Lz;
         ft2 = interp1(z, DD(:,i)/Dp, zft);
         ft3 = interp1(z, N2(:,i)/N2tot, zft);
         features(:, 1)  = ft1;

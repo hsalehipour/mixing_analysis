@@ -365,7 +365,7 @@ Re_taylor0(ic) = Re_taylor(indt3d);
 %       Rib = Ri_0/R;
 
 % Define Turbulent Dissipation (i.e. D or D3d or D2d+D3d?)
-turb_disp = abs(D);
+turb_disp = abs(D3d+D2d);
 
 % Integral length scales for shear and density layer thickness
 Iu   = trapz(z,1-ubar.^2,1);
