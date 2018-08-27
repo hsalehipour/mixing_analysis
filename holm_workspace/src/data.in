@@ -1,13 +1,19 @@
-8
+6
+/home/hesam/REPOs/mixing_analysis/holm_workspace/data/Re-4000-Ri-016-Pr-8/
 /home/hesam/REPOs/mixing_analysis/holm_workspace/data/Re-6000-Ri-016-Pr-8/
 /home/hesam/REPOs/mixing_analysis/holm_workspace/data/Re-6000-Ri-016-Pr-8-R5/
 /home/hesam/REPOs/mixing_analysis/holm_workspace/data/Re-6000-Ri-016-Pr-8-R10/
-/home/hesam/REPOs/mixing_analysis/holm_workspace/data/Re-6000-Ri-016-Pr-8-R25/
 /home/hesam/REPOs/mixing_analysis/holm_workspace/data/Re-6000-Ri-008-Pr-8-R5/
 /home/hesam/REPOs/mixing_analysis/holm_workspace/data/Re-6000-Ri-008-Pr-8-R10/
+%^^^Above list is associated with Training data for dl_Osborn project
+
+3
+/home/hesam/REPOs/mixing_analysis/holm_workspace/data/Re-6000-Ri-016-Pr-8-R25/
 /home/hesam/REPOs/mixing_analysis/holm_workspace/data/Re-6000-Ri-032-Pr-8-R5/
 /home/hesam/REPOs/mixing_analysis/holm_workspace/data/Re-6000-Ri-032-Pr-8-R10/
-/home/hesam/REPOs/mixing_analysis/holm_workspace/data/kh-Re-6000-Ri-016-Pr-8/
+%^^^Above list is associated with Validation data for dl_Osborn project
+
+
 
 2
 /home/hesam/REPOs/mixing_analysis/holm_workspace/data/Re-6000-Ri-016-Pr-8/
@@ -15,21 +21,9 @@
 
 
 
-
-
-
-
-
-
-
-
 /home/hesam/REPOs/mixing_analysis/holm_workspace/data/Re-12000-Ri-032-Pr-1-R10/
 /home/hesam/REPOs/mixing_analysis/holm_workspace/data/Re-24000-Ri-064-Pr-1-R5/
 /home/hesam/REPOs/mixing_analysis/holm_workspace/data/Re-48000-Ri-064-Pr-1-R5/
-
-
-
-
 
 
 /home/hesam/holm_workspace/data/Re-24000-Ri-064-Pr-1-R5/
