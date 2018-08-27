@@ -41,6 +41,9 @@ rhobar  = zeros(nzp,nhis);
 rhob    = zeros(nzp,nhis);
 ubar    = zeros(nzp,nhis);
 epsbar  = zeros(nzp,nhis);
+chi3d   = zeros(nzp,nhis);      % chi calculated using rho_3d
+chi_pr  = zeros(nzp,nhis);      % chi calculated using rho'=rho_2d + rho_3d
+
 for i=h0:hf
     %fname = sprintf([fadrs,'h.%07d.dat'],i);
     fname = fgetl(fid);

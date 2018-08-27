@@ -106,7 +106,7 @@ end
 % find the end of turbulent phase or ...
 % time associated with the start of relaminarization phase
 cr = Reb;
-tol = 1;
+tol = 10;
 [~,ind] = min(abs(abs(cr(time>t3d))-tol));
 indtrl = ind + indt3d;
 trl = time(indtrl);

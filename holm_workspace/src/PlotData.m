@@ -2204,8 +2204,9 @@ eff_cox_all = [eff_cox_all eff_cox];
 %% dl_Osborn: generate the training data
 epsbar_turb = epsbar - shear.^2./Re;
 
-dl_fname = 'HWI_training_data.dat';
-dl_osborn_write_train(dl_fname, my_eff, M, epsbar,N2, kappa0,z,shl_zmax,shl_zmin)
+% dl_fname = 'HWI_training_data.dat';
+dl_fname = 'HWI_testing_data.dat';
+dl_osborn_write_train(dl_fname, my_eff, epsbar,N2, kappa0,z,shl_zmax,shl_zmin)
 
 
 %% Draw vertical lines for t2d, t3d
