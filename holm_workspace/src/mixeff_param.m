@@ -40,17 +40,48 @@ eff_par = Reb_par*0;
 % eff_par(eff_par<0) = 1e-6;
 
 
-%===================
-% Using Ri=<N^2>/<S^2>
-%===================
-eff_peak = 0.04*Ri_par.*(1-2*Ri_par)./(Ri_par.^3-1.05*Ri_par.^2+0.26*Ri_par+0.01);
-Psi      = 0.02*exp(13.36*Ri_par)+1.35;
-Reb_peak = (Psi./eff_peak).^2;
+% %===================
+% % Using Ri=<N^2>/<S^2> : BUT discontinous
+% %===================
+% Psi = mixeff_param_Psi(Ri_par);
+% eff_peak = mixeff_param_effpeak(Ri_par);
+% Reb_peak = (Psi./eff_peak).^2;
+% 
+% ind_lf = Reb_par<Reb_peak;
+% ind_rf = Reb_par>Reb_peak;
+% 
+% eff_par(ind_lf) = (-2*Reb_par(ind_lf).^(-0.8)+1).*eff_peak(ind_lf); 
+% eff_par(ind_rf) = Psi(ind_rf).*Reb_par(ind_rf).^(-0.5);
+% eff_par(eff_par<0) = 1e-6;
 
-ind_lf = Reb_par<Reb_peak;
+% %===================
+% % Using Ri=<N^2>/<S^2>  : continuous
+% %===================
+% Psi = mixeff_param_Psi(Ri_par);
+% eff_peak = mixeff_param_effpeak(Ri_par);
+% Reb_peak = (Psi./eff_peak).^2;
+% 
+% ind_lf = Reb_par<=Reb_peak;
+% ind_rf = Reb_par>Reb_peak;
+% 
+% eff_par(ind_lf) = (Reb_par(ind_lf)./Reb_peak(ind_lf)).^(0.1).*eff_peak(ind_lf); 
+% eff_par(ind_rf) = Psi(ind_rf).*Reb_par(ind_rf).^(-0.5);
+% eff_par(eff_par<0) = 1e-6;
+
+
+%===================
+% Using Ri=<N^2>/<S^2>  : tst attempt to get rid of spike in histograms
+%===================
+Psi = mixeff_param_Psi(Ri_par);
+eff_peak = mixeff_param_effpeak(Ri_par);
+Reb_peak = 4/9*(Psi./eff_peak).^2;
+
+ind_lf = Reb_par<=Reb_peak;
 ind_rf = Reb_par>Reb_peak;
 
-eff_par(ind_lf) = (-2*Reb_par(ind_lf).^(-0.8)+1).*eff_peak(ind_lf); 
-eff_par(ind_rf) = Psi(ind_rf).*Reb_par(ind_rf).^(-0.5);
+param = @(x,p)  (1+2*p)*x.^p./(1+2*p*x.^(p+0.5));
+
+eff_par(ind_lf) = eff_peak(ind_lf).*param((Reb_par(ind_lf)./Reb_peak(ind_lf)),0.55); 
+eff_par(ind_rf) = eff_peak(ind_rf).*param((Reb_par(ind_rf)./Reb_peak(ind_rf)),1); 
 eff_par(eff_par<0) = 1e-6;
 end

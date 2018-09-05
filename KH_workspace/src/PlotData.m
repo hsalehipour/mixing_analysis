@@ -1571,9 +1571,14 @@ eff_cox_all = [eff_cox_all eff_cox];
 %% dl_Osborn: generate the training data
 epsbar_turb = epsbar - shear.^2./Re;
 
-dl_fname = 'KHI_training_data.dat';
+% dl_fname = 'KHI_training_data.dat';
 % dl_fname = 'KHI_testing_data.dat';
-dl_osborn_write_train(dl_fname, my_eff, epsbar,N2, kappa0,z,shl_zmax,shl_zmin)
+% dl_fname = [fadrs,'dl_input.dat'];
+% dl_osborn_write_train(dl_fname, my_eff, epsbar,N2, kappa0,z,shl_zmax,shl_zmin)
+
+%% dl_Osborn: Producing plots of the paper
+dl_osborn_plot_figures;
+
 
 %% test
 % [effmx, indmx] = max(eff(ind));
