@@ -44,6 +44,7 @@ epsbar  = zeros(nzp,nhis);
 chi3d   = zeros(nzp,nhis);      % chi calculated using rho_3d
 chi_pr  = zeros(nzp,nhis);      % chi calculated using rho'=rho_2d + rho_3d
 chi_ref  = zeros(nzp,nhis);     % or chi_base (not sure this is accurate)
+Hbar    = zeros(nzp,nhis);      % Hbar = <rho' w'>_{xy}= buoyflux(z)
 
 % Note: 26-Oct-2018: unfortunately I have not computed chi_pr consistently 
 % for all KHI cases and now it is costly to rerun all post-processing.
@@ -56,14 +57,21 @@ chi_ref  = zeros(nzp,nhis);     % or chi_base (not sure this is accurate)
 for i=h0:hf
     %fname = sprintf([fadrs,'h.%07d.dat'],i);
     fname = fgetl(fid);
-    A = loadtxt(fname, 9, 2);
+    % A = loadtxt(fname, 9, 2);
+    A = dlmread(fname, '', 2,0)';
     z = A(3,:)';
     rhobar (:,i) = A(4,:)';
     rhob   (:,i) = A(5,:)';
     ubar   (:,i) = A(6,:)';
     epsbar (:,i) = A(7,:)'*nu;
-    chi3d  (:,i) = A(8,:)';
-    chi_ref (:,i) = A(9,:)';
+    if size(A,1)>9
+        chi_pr (:,i) = A(8,:)';
+        chi_ref(:,i) = A(9,:)';
+        Hbar   (:,i) = g*A(10,:)';      % it's not multiplied by g in .usr
+    else
+        chi3d  (:,i) = A(8,:)';
+        chi_ref (:,i) = A(9,:)';
+    end
 
     sprintf('Reading file %s done!', fname)
 end

@@ -51,7 +51,8 @@ Hbar    = zeros(nzp,nhis);      % Hbar = <rho' w'>_{xy}= buoyflux(z)
 for i=h0:hf
     %fname = sprintf([fadrs,'h.%07d.dat'],i);
     fname = fgetl(fid);
-    A = loadtxt(fname, 10, 2);
+    % A = loadtxt(fname, 10, 2);
+    A = dlmread(fname, '', 2,0)';
     z = A(3,:)';
     rhobar (:,i) = A(4,:)';
     rhob   (:,i) = A(5,:)';
