@@ -18,7 +18,8 @@ eps_klmg= A(8,:)'*nu;
 
 %% 1-2 Read stat3d file
 fname = [fadrs,'stat3d.dat'];
-A = loadtxt(fname,9,1);
+% A = loadtxt(fname,9,1);
+A = dlmread(fname, '', 1,0)';
 KE3d     =  A(2,:)';
 sig3_Rs  =  A(3,:)';
 sig3_Sh  =  A(4,:)';
@@ -27,6 +28,9 @@ sig3_Hb  = -A(6,:)';
 sig3_Dv  =  A(7,:)';
 uw       =  A(8,:)';
 LT3d     =  A(9,:)';
+if size(A,2)>9
+    rhop_rms =  A(10,:)';       % rms of rho'=rho2d+rho3d= <rho'^2>^(0.5)
+end
 %sigma3d = sig3_Rs + sig3_Sh + sig3_An + sig3_Hb + sig3_Dv;
 sigma3d = sig3_Rs + sig3_Sh + sig3_An - sig3_Hb + sig3_Dv;
 
