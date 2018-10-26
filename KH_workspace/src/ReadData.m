@@ -43,6 +43,15 @@ ubar    = zeros(nzp,nhis);
 epsbar  = zeros(nzp,nhis);
 chi3d   = zeros(nzp,nhis);      % chi calculated using rho_3d
 chi_pr  = zeros(nzp,nhis);      % chi calculated using rho'=rho_2d + rho_3d
+chi_ref  = zeros(nzp,nhis);     % or chi_base (not sure this is accurate)
+
+% Note: 26-Oct-2018: unfortunately I have not computed chi_pr consistently 
+% for all KHI cases and now it is costly to rerun all post-processing.
+% for the purpose of DL-paper I have had to re-run post-processing just for
+% the 3 of the validation test cases. This enables comparison with
+% Osborn-Cox formulation. So I will leave chi_pr here to be zero so that
+% anything computed based on this becomes meaningless and don't cause the
+% issue that I did not catch in the initial submission of my Rapids DLpaper
 
 for i=h0:hf
     %fname = sprintf([fadrs,'h.%07d.dat'],i);
@@ -54,7 +63,7 @@ for i=h0:hf
     ubar   (:,i) = A(6,:)';
     epsbar (:,i) = A(7,:)'*nu;
     chi3d  (:,i) = A(8,:)';
-    chi_pr (:,i) = A(9,:)';
+    chi_ref (:,i) = A(9,:)';
 
     sprintf('Reading file %s done!', fname)
 end

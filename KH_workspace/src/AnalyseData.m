@@ -301,7 +301,7 @@ kappa_star = phi_d./mean(gradrhob)'/kappa0;
 gradrho  = ddx(rhobar,z);
 kappa_cox  = mean(chi3d)'  ./mean(gradrho.^2)';
 % Note: chi_ref in the following formula, 
-kappa_coxfull  = mean(chi_pr)'./mean(gradrho.^2)';
+kappa_coxfull  = mean(chi_ref)'./mean(gradrho.^2)';
 
 
 % (3) kappa = <rho'w'>/ddz_rhobar;
