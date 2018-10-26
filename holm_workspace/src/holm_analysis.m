@@ -19,7 +19,7 @@
 %==========================================================================
 
 
-clear all;  close all;  clc;
+% clear all;  close all;  clc;
 % close all;  clc;
 
 % Read number of cases to be compared (default = 1)
