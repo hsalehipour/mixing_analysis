@@ -3,9 +3,10 @@
 % increasing number of convNet layers.
 test_rsme = [0.083206415, 0.07324314, 0.066356234, 0.06448664, 0.060592752, 0.05907017, 0.06259513];
 test_r2  = [0.69783092, 0.76586290533, 0.8078237064, 0.81850034169, 0.83975750326, 0.8477095069477277, 0.828991600800043];
+np_trainable=[2.0989e6, 1.0831e6, 5.9168e5, 3.6237e5, 2.6413e5, 2.3142e5, 2.3149e5];
 
 nlayer = 1:7;
-[haxes,hline1,hline2] = plotyy(nlayer, test_rsme, nlayer, test_r2);
+[haxes,hline1,hline2] = plotyy(nlayer, test_rsme, nlayer, np_trainable);
 set(hline1, 'LineStyle','-', ...
     'Color',[0 0 0],...
     'MarkerFaceColor',[0.8 0.8 0.8],...
