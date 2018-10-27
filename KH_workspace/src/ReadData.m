@@ -28,7 +28,7 @@ sig3_Hb  = -A(6,:)';
 sig3_Dv  =  A(7,:)';
 uw       =  A(8,:)';
 LT3d     =  A(9,:)';
-if size(A,2)>9
+if size(A,1)>9
     rhop_rms =  A(10,:)';       % rms of rho'=rho2d+rho3d= <rho'^2>^(0.5)
 end
 %sigma3d = sig3_Rs + sig3_Sh + sig3_An + sig3_Hb + sig3_Dv;
